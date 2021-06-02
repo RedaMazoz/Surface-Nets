@@ -1,0 +1,16 @@
+
+#include "Shader/ClassicNoise3D.hlsl"
+#include "Shader/SimplexNoise3D.hlsl"
+
+#pragma kernel CSMain
+
+RWStructuredBuffer<float4> vertices;
+
+[numthreads(9,9,9)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    float a = (id.x*id.y*id.z);
+    if(a%2 == 0){ a = 1;}
+    else { a =-1;}
+    vertices[id.x + 9* id.y + 9*9*id.z] = float4(id.x,id.y,id.z, distance(id, float3(4.,4,4)) - 3.8     );
+}

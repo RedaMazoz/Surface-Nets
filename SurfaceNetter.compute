@@ -1,0 +1,54 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel SurfaceGenerate
+
+RWStructuredBuffer<float3> netsX;
+RWStructuredBuffer<float3> netsY;
+RWStructuredBuffer<float3> netsZ;
+
+RWStructuredBuffer<uint> XTriangleFaces;
+RWStructuredBuffer<uint> YTriangleFaces;    
+RWStructuredBuffer<uint> ZTriangleFaces;
+
+
+RWStructuredBuffer<float3> FinalVertices;
+
+RWStructuredBuffer<uint> vertMapper;
+
+
+//int nCubes = 0;
+
+[numthreads(8,8,8)]
+void SurfaceGenerate (uint3 id : SV_DispatchThreadID)
+{
+    float3 avgVertex = float3(0,0,0);
+    float vertCount = 0;
+
+
+
+    if(XTriangleFaces[id.x +9*id.y +9*9*id.z] > 1) { avgVertex += netsX[id.x +9*id.y +9*9*id.z]; vertCount +=1;}
+    if(YTriangleFaces[id.x +9*id.y +9*9*id.z] > 1) { avgVertex += netsY[id.x +9*id.y +9*9*id.z]; vertCount +=1;}
+    if(ZTriangleFaces[id.x +9*id.y +9*9*id.z] > 1) { avgVertex += netsZ[id.x +9*id.y +9*9*id.z]; vertCount +=1;}
+
+    if(XTriangleFaces[id.x +9*(id.y+1) +9*9*id.z] > 1) { avgVertex += netsX[id.x +9*(id.y+1) +9*9*id.z]; vertCount +=1;}
+    if(YTriangleFaces[(id.x+1) +9*id.y +9*9*id.z] > 1) { avgVertex += netsY[(id.x+1) +9*id.y +9*9*id.z]; vertCount +=1;}
+    if(ZTriangleFaces[id.x +9*(id.y+1) +9*9*id.z] > 1) { avgVertex += netsZ[id.x +9*(id.y+1) +9*9*id.z]; vertCount +=1;}
+
+    if(XTriangleFaces[id.x +9*id.y +9*9*(id.z+1)] > 1) { avgVertex += netsX[id.x +9*id.y +9*9*(id.z+1)]; vertCount +=1;}
+    if(YTriangleFaces[id.x +9*id.y +9*9*(id.z+1)] > 1) { avgVertex += netsY[id.x +9*id.y +9*9*(id.z+1)]; vertCount +=1;}
+    if(ZTriangleFaces[(id.x+1) +9*id.y +9*9*id.z] > 1) { avgVertex += netsZ[(id.x+1) +9*id.y +9*9*id.z]; vertCount +=1;}
+        
+    if(XTriangleFaces[id.x +9*(id.y+1) +9*9*(id.z+1)] > 1) { avgVertex += netsX[id.x +9*(id.y+1) +9*9*(id.z+1)]; vertCount +=1;}
+    if(YTriangleFaces[(id.x+1) +9*id.y +9*9*(id.z+1)] > 1) { avgVertex += netsY[(id.x+1) +9*id.y +9*9*(id.z+1)]; vertCount +=1;}
+    if(ZTriangleFaces[(id.x+1) +9*(id.y+1) +9*9*id.z] > 1) { avgVertex += netsZ[(id.x+1) +9*(id.y+1) +9*9*id.z]; vertCount +=1;}
+    if(vertCount != 0)
+    {
+
+
+        uint v = FinalVertices.IncrementCounter();
+
+        avgVertex /= vertCount;
+
+        FinalVertices[v] = avgVertex;
+        vertMapper[id.x+8*id.y+8*8*id.z] = v;
+    }
+}

@@ -1,0 +1,61 @@
+#define NOFACE 1;
+#define FRONTFACE 2;
+#define BACKFACE 3;
+
+
+StructuredBuffer<float4> vertices;
+
+float3 getZeroPoint(uint pIndexA,uint pIndexB)
+{
+   return vertices[pIndexA].xyz + (vertices[pIndexB].xyz - vertices[pIndexA].xyz) *(vertices[pIndexA].w / ( vertices[pIndexA].w - vertices[pIndexB].w ) );
+}   
+#pragma kernel NetSampleX
+RWStructuredBuffer<float3> netsX;
+RWStructuredBuffer<uint> XTriangleFaces;
+
+[numthreads(9,9,9)]
+void NetSampleX (uint3 id : SV_DispatchThreadID)
+{
+    
+    if(vertices[id.x + 9*id.y + 9*9*id.z].w * vertices[(id.x +1)  + 9*id.y + 9*9*id.z].w < 0) {
+        if(vertices[id.x + 9*id.y + 9*9*id.z].w < 0) { XTriangleFaces[id.x + 9*id.y + 9*9*id.z] = FRONTFACE; }
+        else { XTriangleFaces[id.x + 9*id.y + 9*9*id.z] = BACKFACE; }
+        netsX[id.x + 9*id.y + 9*9*id.z] = getZeroPoint(id.x + 9*id.y + 9*9*id.z,(id.x +1)  + 9*id.y + 9*9*id.z);
+    }
+    else { XTriangleFaces[id.x + 9*id.y + 9*9*id.z] = NOFACE;}
+}
+
+#pragma kernel NetSampleZ
+RWStructuredBuffer<float3> netsZ;
+RWStructuredBuffer<uint> ZTriangleFaces;
+
+[numthreads(9,9,9)]
+void NetSampleZ (uint3 id : SV_DispatchThreadID)
+{
+    //netsZ.IncrementCounter();
+    if(vertices[id.x + 9*id.y + 9*9*id.z].w * vertices[id.x  + 9*id.y + 9*9*(id.z+1)].w < 0)
+    {
+        if(vertices[id.x + 9*id.y + 9*9*id.z].w < 0) { ZTriangleFaces[id.x + 9*id.y + 9*9*id.z] = FRONTFACE; }
+        else { ZTriangleFaces[id.x + 9*id.y + 9*9*id.z] = BACKFACE; }
+        netsZ[id.x + 9*id.y + 9*9*id.z] = getZeroPoint(id.x + 9*id.y + 9*9*id.z,id.x  + 9*id.y + 9*9*(id.z +1));
+    }
+    else { ZTriangleFaces[id.x + 9*id.y + 9*9*id.z] = NOFACE;}
+}
+
+#pragma kernel NetSampleY
+RWStructuredBuffer<float3> netsY;
+RWStructuredBuffer<uint> YTriangleFaces;
+
+[numthreads(9,9,9)]
+void NetSampleY (uint3 id : SV_DispatchThreadID)
+{
+    //netsY.IncrementCounter();
+    if(vertices[id.x + 9*id.y + 9*9*id.z].w * vertices[id.x  + 9*(id.y+1) + 9*9*id.z].w < 0)
+    {
+        if(vertices[id.x + 9*id.y + 9*9*id.z].w < 0) { YTriangleFaces[id.x + 9*id.y + 9*9*id.z] = FRONTFACE; }
+        else { YTriangleFaces[id.x + 9*id.y + 9*9*id.z] = BACKFACE; }
+        netsY[id.x + 9*id.y + 9*9*id.z] = getZeroPoint(id.x + 9*id.y + 9*9*id.z,id.x  + 9*(id.y+1) + 9*9*id.z);
+    }
+    else { YTriangleFaces[id.x + 9*id.y + 9*9*id.z] = NOFACE;}
+
+}

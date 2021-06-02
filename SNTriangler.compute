@@ -1,0 +1,100 @@
+#define FRONTFACE 0;
+#define BACKFACE 1;
+
+#pragma kernel SNTriangler
+
+//StructuredBuffer<float4> vertices;
+
+//RWStructuredBuffer<float3> FinalVertices;
+
+RWStructuredBuffer<uint> XTriangleFaces;
+RWStructuredBuffer<uint> YTriangleFaces;
+RWStructuredBuffer<uint> ZTriangleFaces;
+
+RWStructuredBuffer<uint> netsX;
+RWStructuredBuffer<uint> netsY;
+RWStructuredBuffer<uint> netsZ;
+
+RWStructuredBuffer<int3> FinalTriangles;
+
+RWStructuredBuffer<uint> vertMapper;
+
+
+[numthreads(9,9,9)]
+void SNTriangler (uint3 id : SV_DispatchThreadID)
+{
+    uint b;
+    
+    if(XTriangleFaces[id.x + 9*id.y + 9*9*id.z]> 1 && id.x < 8 && id.y < 8 && id.z < 8 && id.y > 0 && id.z > 0)
+    {
+        uint cube = vertMapper[id.x + 8*id.y + 8*8*id.z];
+        uint leftCube = vertMapper[id.x + 8*id.y + 8*8*(id.z-1)];
+        uint downCube = vertMapper[id.x + 8*(id.y-1) + 8*8*id.z];
+        uint leftDownCube = vertMapper[id.x + 8*(id.y-1) + 8*8*(id.z-1)];
+        
+        
+        if(XTriangleFaces[id.x + 9*id.y + 9*9*id.z] == 2)
+        {
+            b = FinalTriangles.IncrementCounter();
+            FinalTriangles[b] = uint3(cube,downCube,leftCube);
+            b = FinalTriangles.IncrementCounter();
+            FinalTriangles[b] = uint3(downCube,leftDownCube,leftCube);
+            
+        }
+        else if(XTriangleFaces[id.x + 9*id.y + 9*9*id.z] == 3)
+        {
+            b = FinalTriangles.IncrementCounter();
+            FinalTriangles[b] = uint3(cube,leftCube,downCube);
+            b = FinalTriangles.IncrementCounter();  
+            FinalTriangles[b] = uint3(leftCube,leftDownCube,downCube);
+        }
+
+    }
+    if(ZTriangleFaces[id.x + 9*id.y + 9*9*id.z] > 1 && id.x < 8 && id.y < 8 && id.z < 8 && id.y > 0 && id.x > 0 )
+    {
+        uint cube = vertMapper[id.x + 8*id.y + 8*8*id.z];
+        uint leftCube = vertMapper[(id.x-1) + 8*id.y + 8*8*id.z];
+        uint downCube = vertMapper[id.x + 8*(id.y-1) + 8*8*id.z];
+        uint leftDownCube = vertMapper[(id.x-1) + 8*(id.y-1) + 8*8*id.z];
+
+        if(ZTriangleFaces[id.x + 9*id.y + 9*9*id.z] == 2)
+        {
+
+            b = FinalTriangles.IncrementCounter();
+            FinalTriangles[b] = uint3(leftCube,downCube,cube);
+            b = FinalTriangles.IncrementCounter();
+            FinalTriangles[b] = uint3(leftCube,leftDownCube,downCube);
+        }
+        else if(ZTriangleFaces[id.x + 9*id.y + 9*9*id.z] == 3)
+        {
+            b = FinalTriangles.IncrementCounter();
+            FinalTriangles[b] = uint3(cube,downCube,leftCube);
+            b = FinalTriangles.IncrementCounter();
+            FinalTriangles[b] = uint3(downCube,leftDownCube,leftCube);
+        }
+    }
+    if(YTriangleFaces[id.x + 9*id.y + 9*9*id.z]> 1 && id.x < 8 && id.y < 8 && id.z < 8 && id.x > 0 && id.z > 0 )
+    {
+        uint cube = vertMapper[id.x + 8*id.y + 8*8*id.z];
+        uint leftCube = vertMapper[(id.x-1) + 8*id.y + 8*8*id.z];
+        uint downCube = vertMapper[id.x + 8*id.y + 8*8*(id.z-1)];
+        uint leftDownCube = vertMapper[(id.x-1) + 8*id.y + 8*8*(id.z-1)];
+        
+
+        if(YTriangleFaces[id.x + 9*id.y + 9*9*id.z] == 2)
+        {
+            b = FinalTriangles.IncrementCounter();
+            FinalTriangles[b] = uint3(cube,downCube,leftCube);
+            b = FinalTriangles.IncrementCounter();
+            FinalTriangles[b] = uint3(leftCube,downCube,leftDownCube);
+        }
+        else if(YTriangleFaces[id.x + 9*id.y + 9*9*id.z] == 3)
+        {
+            b = FinalTriangles.IncrementCounter();
+            FinalTriangles[b] = uint3(cube,leftCube,downCube);
+            b = FinalTriangles.IncrementCounter();
+            FinalTriangles[b] = uint3(downCube,leftCube,leftDownCube);
+        }
+    }
+    
+}
